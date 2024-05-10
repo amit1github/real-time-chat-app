@@ -1,19 +1,39 @@
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
-
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.get("/", async (req, res) => {
-  res.send("Hello developer! API is working!");
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
 });
 
-const PORT = process.env.PORT || 6000;
+app.use(
+  cors({
+    origin: "http://localhost:5173/",
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 
-app.listen(PORT, () => {
+app.get("/", (req, res) => {
+  res.send("Hello developer!");
+});
+
+io.on("connection", (socket) => {
+  console.log("User connected");
+  console.log("ID: ", socket.id);
+});
+
+const PORT = 3000;
+
+httpServer.listen(PORT, () => {
   console.log(`server is running on port: ${PORT}`);
 });
